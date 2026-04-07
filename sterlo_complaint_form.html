@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Sterlo · Complaint Registration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:    #0B2545;
+    --teal:    #1A7A8A;
+    --teal-lt: #E8F4F6;
+    --ice:     #F0F6FA;
+    --border:  #D1E0E8;
+    --muted:   #6B8CA4;
+    --text:    #0D1B2A;
+    --white:   #FFFFFF;
+    --red:     #C0392B;
+    --green:   #1E8C5A;
+    --orange:  #D4600A;
+    --r:       14px;
+    --r-sm:    8px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--ice);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    background: var(--navy);
+    color: white;
+    padding: 18px 20px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(11,37,69,0.25);
+  }
+  .header-logo {
+    width: 36px; height: 36px;
+    background: var(--teal);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: white;
+    letter-spacing: -0.5px;
+  }
+  .header-title { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; }
+  .header-sub   { font-size: 11.5px; opacity: 0.65; margin-top: 1px; font-weight: 400; }
+  .header-badge {
+    margin-left: auto;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.85);
+    white-space: nowrap;
+  }
+
+  /* ─── PROGRESS ─── */
+  .progress-bar {
+    background: rgba(255,255,255,0.15);
+    height: 3px;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--teal);
+    transition: width 0.4s ease;
+  }
+
+  /* ─── STEP INDICATOR ─── */
+  .step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 16px 24px;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+  }
+  .step-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s;
+    position: relative;
+    z-index: 1;
+  }
+  .step-dot.active  { background: var(--teal);  color: white; box-shadow: 0 0 0 3px var(--teal-lt); }
+  .step-dot.done    { background: var(--green);  color: white; }
+  .step-dot.done::after { content: '✓'; }
+  .step-dot.done .n { display: none; }
+  .step-line {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    max-width: 48px;
+    transition: background 0.3s;
+  }
+  .step-line.done { background: var(--green); }
+  .step-label {
+    font-size: 10.5px;
+    color: var(--muted);
+    margin-top: 4px;
+    text-align: center;
+    font-weight: 500;
+  }
+  .step-wrap { display: flex; flex-direction: column; align-items: center; }
+
+  /* ─── MAIN ─── */
+  .container { max-width: 520px; margin: 0 auto; padding: 20px 16px; }
+
+  /* ─── SECTION CARD ─── */
+  .card {
+    background: var(--white);
+    border-radius: var(--r);
+    padding: 20px;
+    margin-bottom: 14px;
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 4px rgba(11,37,69,0.05);
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .card-title::before {
+    content: '';
+    display: block;
+    width: 3px;
+    height: 14px;
+    background: var(--teal);
+    border-radius: 2px;
+  }
+
+  /* ─── TYPE SELECTOR ─── */
+  .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .type-btn {
+    border: 2px solid var(--border);
+    border-radius: var(--r);
+    background: var(--white);
+    padding: 18px 14px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .type-btn:hover  { border-color: var(--teal); background: var(--teal-lt); }
+  .type-btn.active { border-color: var(--teal); background: var(--teal-lt); }
+  .type-btn.active::after {
+    content: '✓';
+    position: absolute; top: 8px; right: 10px;
+    width: 18px; height: 18px;
+    background: var(--teal);
+    color: white;
+    border-radius: 50%;
+    font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+    display: grid; place-items: center;
+  }
+  .type-icon { font-size: 26px; margin-bottom: 8px; display: block; }
+  .type-name { font-size: 14px; font-weight: 700; color: var(--navy); }
+  .type-desc { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+
+  /* ─── FORM ELEMENTS ─── */
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+  label .req { color: var(--red); margin-left: 2px; }
+  label .opt { color: var(--muted); font-weight: 400; font-size: 11px; margin-left: 4px; }
+
+  input[type=text], input[type=tel], input[type=number], select, textarea {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 11px 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14.5px;
+    color: var(--text);
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(26,122,138,0.1);
+  }
+  select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B8CA4' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; padding-right: 36px; }
+  textarea { resize: none; height: 100px; line-height: 1.5; }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* ─── DEPT CHIPS ─── */
+  .dept-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .dept-chip {
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--navy);
+    background: var(--white);
+    transition: all 0.18s;
+    display: flex; align-items: center; gap: 8px;
+    line-height: 1.3;
+  }
+  .dept-chip:hover  { border-color: var(--teal); background: var(--teal-lt); }
+  .dept-chip.active { border-color: var(--teal); background: var(--teal-lt); color: var(--teal); font-weight: 700; }
+  .dept-chip .di    { font-size: 16px; flex-shrink: 0; }
+  .dept-chip span   { font-size: 12.5px; }
+
+  /* ─── SEVERITY ─── */
+  .sev-row { display: flex; gap: 8px; }
+  .sev-btn {
+    flex: 1; border: 1.5px solid var(--border); border-radius: var(--r-sm);
+    padding: 10px 6px; cursor: pointer; text-align: center;
+    font-size: 12px; font-weight: 600; background: var(--white); color: var(--muted);
+    transition: all 0.18s;
+  }
+  .sev-btn .si { display: block; font-size: 18px; margin-bottom: 3px; }
+  .sev-btn.low.active    { border-color: #2196F3; background: #E3F2FD; color: #1565C0; }
+  .sev-btn.medium.active { border-color: var(--orange); background: #FFF3E0; color: var(--orange); }
+  .sev-btn.high.active   { border-color: var(--red); background: #FFEBEE; color: var(--red); }
+
+  /* ─── PHOTO UPLOAD ─── */
+  .upload-area {
+    border: 2px dashed var(--border);
+    border-radius: var(--r-sm);
+    padding: 18px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--ice);
+  }
+  .upload-area:hover  { border-color: var(--teal); background: var(--teal-lt); }
+  .upload-area input  { display: none; }
+  .upload-icon  { font-size: 24px; }
+  .upload-text  { font-size: 13px; color: var(--muted); margin-top: 5px; }
+  .upload-text strong { color: var(--teal); }
+  .preview-img  { width: 100%; max-height: 120px; object-fit: cover; border-radius: 6px; margin-top: 10px; display: none; }
+
+  /* ─── BUTTONS ─── */
+  .btn-primary {
+    width: 100%;
+    background: var(--teal);
+    color: white;
+    border: none;
+    border-radius: var(--r-sm);
+    padding: 15px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.2px;
+    transition: all 0.2s;
+    margin-top: 4px;
+  }
+  .btn-primary:hover:not(:disabled) { background: #15697A; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(26,122,138,0.35); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-back {
+    background: none; border: none; color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; cursor: pointer; padding: 8px 0;
+    font-weight: 500; display: flex; align-items: center; gap: 5px;
+    margin-bottom: 12px;
+  }
+  .btn-back:hover { color: var(--navy); }
+
+  /* ─── INFO BANNER ─── */
+  .info-banner {
+    background: #E8F4F6;
+    border: 1px solid #B2D8E0;
+    border-radius: var(--r-sm);
+    padding: 11px 14px;
+    font-size: 12.5px;
+    color: #0B6070;
+    display: flex; gap: 9px; align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .info-banner .ii { flex-shrink: 0; font-size: 15px; }
+
+  /* ─── SUCCESS ─── */
+  #step-success { display: none; }
+  .success-card {
+    background: var(--white);
+    border-radius: var(--r);
+    padding: 32px 24px;
+    text-align: center;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 16px rgba(11,37,69,0.08);
+  }
+  .success-icon {
+    width: 64px; height: 64px;
+    background: #E8F8F0;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 28px;
+  }
+  .success-title  { font-size: 20px; font-weight: 700; color: var(--navy); }
+  .success-sub    { font-size: 14px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+  .ticket-badge   {
+    display: inline-block;
+    background: var(--teal-lt);
+    border: 1.5px solid #B2D8E0;
+    border-radius: 20px;
+    padding: 6px 18px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--teal);
+    margin: 16px 0;
+    font-family: 'DM Serif Display', serif;
+    letter-spacing: 0.5px;
+  }
+  .success-detail { background: var(--ice); border-radius: var(--r-sm); padding: 14px; text-align: left; margin-top: 14px; }
+  .success-detail-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+  .success-detail-row .k { color: var(--muted); font-weight: 500; }
+  .success-detail-row .v { font-weight: 600; color: var(--navy); text-align: right; max-width: 60%; }
+  .btn-new { margin-top: 20px; }
+
+  /* ─── HELPER ─── */
+  .field-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .char-count { font-size: 11px; color: var(--muted); text-align: right; margin-top: 3px; }
+  .error-msg  { font-size: 11.5px; color: var(--red); margin-top: 4px; display: none; }
+
+  /* ─── STEP PAGES ─── */
+  .step-page { display: none; animation: fadeIn 0.25s ease; }
+  .step-page.visible { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .page-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+  .page-sub { font-size: 13.5px; color: var(--muted); margin-bottom: 18px; line-height: 1.4; }
+
+  /* ─── WARD/BED ROW ─── */
+  .ip-context {
+    background: linear-gradient(135deg, #0B2545, #1A7A8A);
+    border-radius: var(--r-sm);
+    padding: 12px 14px;
+    display: flex; gap: 14px; align-items: center;
+    margin-bottom: 14px;
+  }
+  .ip-context .ic { color: white; font-size: 22px; flex-shrink: 0; }
+  .ip-context-text { color: white; }
+  .ip-context-text .t { font-size: 13px; font-weight: 700; }
+  .ip-context-text .s { font-size: 11.5px; opacity: 0.75; margin-top: 1px; }
+
+  /* ─── COLLECTED BY ─── */
+  .collected-toggle { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 13px; font-weight: 500; color: var(--navy); }
+  .toggle-switch { width: 42px; height: 24px; background: var(--border); border-radius: 12px; position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+  .toggle-switch.on { background: var(--teal); }
+  .toggle-switch::after { content: ''; width: 18px; height: 18px; background: white; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .toggle-switch.on::after { left: 21px; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 360px) {
+    .dept-grid { grid-template-columns: 1fr; }
+    .type-grid { grid-template-columns: 1fr; }
+    .field-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">S</div>
+  <div>
+    <div class="header-title">Complaint Registration</div>
+    <div class="header-sub">SterloCare · Patient Experience</div>
+  </div>
+  <div class="header-badge" id="mode-badge">Select Type</div>
+</div>
+<div class="progress-bar" style="background:var(--navy)">
+  <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+</div>
+
+<!-- STEP INDICATOR -->
+<div class="step-indicator">
+  <div class="step-wrap">
+    <div class="step-dot active" id="sd1"><span class="n">1</span></div>
+    <div class="step-label">Type</div>
+  </div>
+  <div class="step-line" id="sl1"></div>
+  <div class="step-wrap">
+    <div class="step-dot" id="sd2"><span class="n">2</span></div>
+    <div class="step-label">Details</div>
+  </div>
+  <div class="step-line" id="sl2"></div>
+  <div class="step-wrap">
+    <div class="step-dot" id="sd3"><span class="n">3</span></div>
+    <div class="step-label">Complaint</div>
+  </div>
+  <div class="step-line" id="sl3"></div>
+  <div class="step-wrap">
+    <div class="step-dot" id="sd4"><span class="n">4</span></div>
+    <div class="step-label">Done</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ═══════════════ STEP 1 — TYPE ═══════════════ -->
+  <div class="step-page visible" id="step-1">
+    <div class="page-title">How are you visiting?</div>
+    <div class="page-sub">This helps us route your complaint to the right team.</div>
+
+    <div class="type-grid">
+      <button class="type-btn" id="btn-op" onclick="selectType('OP')">
+        <span class="type-icon">🚶</span>
+        <div class="type-name">Outpatient</div>
+        <div class="type-desc">Visiting for consultation, lab, radiology or health checkup</div>
+      </button>
+      <button class="type-btn" id="btn-ip" onclick="selectType('IP')">
+        <span class="type-icon">🛏️</span>
+        <div class="type-name">Inpatient</div>
+        <div class="type-desc">Currently admitted — complaint from your ward or bedside</div>
+      </button>
+    </div>
+
+    <div style="margin-top:14px">
+      <button class="btn-primary" id="btn-next-1" onclick="goStep(2)" disabled>Continue →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ STEP 2 — PATIENT DETAILS ═══════════════ -->
+  <div class="step-page" id="step-2">
+    <button class="btn-back" onclick="goStep(1)">← Back</button>
+    <div class="page-title">Your Information</div>
+    <div class="page-sub">We use this to follow up on your complaint.</div>
+
+    <!-- IP: Staff collection toggle -->
+    <div id="staff-toggle-wrap" style="display:none">
+      <div class="card" style="padding:14px 16px">
+        <div class="collected-toggle">
+          <div class="toggle-switch" id="staff-toggle" onclick="toggleStaffMode()"></div>
+          <span>PR Staff filling on behalf of patient</span>
+        </div>
+        <div id="staff-name-field" style="display:none">
+          <div class="field">
+            <label>Staff Name <span class="req">*</span></label>
+            <input type="text" id="staff-name" placeholder="Your name" autocomplete="name">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IP ward context -->
+    <div id="ip-context-card" style="display:none">
+      <div class="card">
+        <div class="card-title">Ward / Bed Details</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Ward <span class="req">*</span></label>
+            <select id="ward-select">
+              <option value="">Select ward</option>
+              <option>General Ward – Male</option>
+              <option>General Ward – Female</option>
+              <option>Semi-Private</option>
+              <option>Private Room</option>
+              <option>ICU</option>
+              <option>SICU</option>
+              <option>MICU</option>
+              <option>NICU</option>
+              <option>Paediatric Ward</option>
+              <option>Maternity Ward</option>
+              <option>Surgical Ward</option>
+              <option>Ortho Ward</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Bed No. <span class="req">*</span></label>
+            <input type="text" id="bed-no" placeholder="e.g. B-204">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Patient Details</div>
+      <div class="field">
+        <label>Patient Name <span class="req">*</span></label>
+        <input type="text" id="patient-name" placeholder="Full name" autocomplete="name">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>MR Number <span class="opt">(if known)</span></label>
+          <input type="text" id="mr-number" placeholder="MR-XXXXXXXX">
+        </div>
+        <div class="field">
+          <label>Mobile <span class="opt">(optional)</span></label>
+          <input type="tel" id="mobile" placeholder="10-digit number" maxlength="10">
+        </div>
+      </div>
+      <p class="field-hint">📋 MR Number speeds up complaint linking to your hospital record.</p>
+    </div>
+
+    <button class="btn-primary" onclick="goStep(3)">Continue →</button>
+  </div>
+
+  <!-- ═══════════════ STEP 3 — COMPLAINT ═══════════════ -->
+  <div class="step-page" id="step-3">
+    <button class="btn-back" onclick="goStep(2)">← Back</button>
+    <div class="page-title">Raise Your Complaint</div>
+    <div class="page-sub">Select the area and describe what happened.</div>
+
+    <div class="card">
+      <div class="card-title">Department / Area</div>
+      <div class="dept-grid" id="dept-grid">
+        <!-- Populated by JS -->
+      </div>
+      <div class="error-msg" id="dept-error">Please select a department.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Complaint Details</div>
+      <div class="field">
+        <label>Describe your complaint <span class="req">*</span></label>
+        <textarea id="complaint-text" placeholder="Briefly describe what happened — the more specific, the faster we can resolve it..." oninput="updateCharCount()"></textarea>
+        <div class="char-count"><span id="char-count">0</span> / 300</div>
+        <div class="error-msg" id="text-error">Please describe your complaint.</div>
+      </div>
+
+      <div class="field">
+        <label>Priority <span class="req">*</span></label>
+        <div class="sev-row">
+          <button class="sev-btn low"    onclick="setSeverity('Low')"    id="sev-low">
+            <span class="si">🟢</span>Low
+          </button>
+          <button class="sev-btn medium" onclick="setSeverity('Medium')" id="sev-med">
+            <span class="si">🟠</span>Medium
+          </button>
+          <button class="sev-btn high"   onclick="setSeverity('High')"   id="sev-high">
+            <span class="si">🔴</span>High / Urgent
+          </button>
+        </div>
+        <div class="field-hint" style="margin-top:6px">High = needs resolution before discharge or same-day.</div>
+      </div>
+
+      <div class="field">
+        <label>Attach Photo <span class="opt">(optional)</span></label>
+        <div class="upload-area" onclick="document.getElementById('photo-input').click()">
+          <input type="file" id="photo-input" accept="image/*" onchange="handlePhoto(this)">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">Tap to take photo or <strong>upload from gallery</strong></div>
+          <img id="preview-img" class="preview-img">
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="submitComplaint()">Submit Complaint ✓</button>
+  </div>
+
+  <!-- ═══════════════ STEP 4 — SUCCESS ═══════════════ -->
+  <div class="step-page" id="step-success">
+    <div class="success-card">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Complaint Registered</div>
+      <div class="success-sub">Your complaint has been logged and routed to the concerned department. Our team will follow up with you.</div>
+      <div class="ticket-badge" id="ticket-id">CMR-000000</div>
+      <div class="success-detail" id="success-detail"></div>
+    </div>
+    <button class="btn-primary btn-new" onclick="resetForm()">Submit Another Complaint</button>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ── State ──────────────────────────────────────────────
+let state = {
+  type: null,       // 'OP' | 'IP'
+  dept: null,
+  severity: null,
+  staffMode: false,
+  step: 1
+};
+
+// ── Departments ────────────────────────────────────────
+const depts = {
+  OP: [
+    { id: 'housekeeping',   label: 'Housekeeping',    icon: '🧹' },
+    { id: 'maintenance',    label: 'Maintenance',      icon: '🔧' },
+    { id: 'canteen',        label: 'Canteen',          icon: '🍽️' },
+    { id: 'pharmacy',       label: 'Pharmacy',         icon: '💊' },
+    { id: 'billing',        label: 'Billing',          icon: '🧾' },
+    { id: 'emergency',      label: 'Emergency',        icon: '🚨' },
+    { id: 'pr',             label: 'Public Relations', icon: '🤝' },
+    { id: 'radiology',      label: 'Radiology',        icon: '🩻' },
+    { id: 'health-checkup', label: 'Health Checkup',   icon: '❤️‍🩺' },
+    { id: 'security',       label: 'Security',         icon: '🛡️' },
+    { id: 'lab',            label: 'Laboratory',       icon: '🔬' },
+  ],
+  IP: [
+    { id: 'nursing',        label: 'Nursing Care',     icon: '👩‍⚕️' },
+    { id: 'housekeeping',   label: 'Housekeeping',     icon: '🧹' },
+    { id: 'dietary',        label: 'Dietary / Meals',  icon: '🍽️' },
+    { id: 'maintenance',    label: 'Facility / Maintenance', icon: '🔧' },
+    { id: 'billing',        label: 'Billing',          icon: '🧾' },
+    { id: 'lab-radiology',  label: 'Lab & Radiology',  icon: '🔬' },
+    { id: 'pharmacy',       label: 'Pharmacy',         icon: '💊' },
+    { id: 'administration', label: 'Administration',   icon: '📋' },
+    { id: 'security',       label: 'Security',         icon: '🛡️' },
+    { id: 'porter',         label: 'Transport / Porter', icon: '🧑‍🦽' },
+  ]
+};
+
+// ── Step navigation ────────────────────────────────────
+function goStep(n) {
+  if (n === 2 && !state.type) return;
+  if (n === 3 && !validateStep2()) return;
+
+  document.querySelectorAll('.step-page').forEach(p => p.classList.remove('visible'));
+  if (n === 4) {
+    document.getElementById('step-success').style.display = 'block';
+    document.getElementById('step-success').classList.add('visible');
+  } else {
+    document.getElementById('step-' + n).classList.add('visible');
+  }
+  state.step = n;
+  updateProgress(n);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateProgress(step) {
+  const pct = { 1: 10, 2: 40, 3: 70, 4: 100 };
+  document.getElementById('progress-fill').style.width = (pct[step] || 10) + '%';
+
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('sd' + i);
+    const line = document.getElementById('sl' + i);
+    dot.className = 'step-dot';
+    if (line) line.className = 'step-line';
+    if (i < step) { dot.classList.add('done'); if (line) line.classList.add('done'); }
+    if (i === step) dot.classList.add('active');
+  }
+}
+
+// ── Type selection ─────────────────────────────────────
+function selectType(type) {
+  state.type = type;
+  document.getElementById('btn-op').classList.toggle('active', type === 'OP');
+  document.getElementById('btn-ip').classList.toggle('active', type === 'IP');
+  document.getElementById('btn-next-1').disabled = false;
+  document.getElementById('mode-badge').textContent = type === 'OP' ? 'Outpatient' : 'Inpatient';
+
+  // Show/hide IP-specific fields
+  document.getElementById('ip-context-card').style.display  = type === 'IP' ? 'block' : 'none';
+  document.getElementById('staff-toggle-wrap').style.display = type === 'IP' ? 'block' : 'none';
+
+  // Build dept grid
+  buildDeptGrid(type);
+}
+
+// ── Department grid ────────────────────────────────────
+function buildDeptGrid(type) {
+  const grid = document.getElementById('dept-grid');
+  grid.innerHTML = '';
+  state.dept = null;
+  depts[type].forEach(d => {
+    const el = document.createElement('button');
+    el.className = 'dept-chip';
+    el.id = 'dept-' + d.id;
+    el.innerHTML = `<span class="di">${d.icon}</span><span>${d.label}</span>`;
+    el.onclick = () => selectDept(d.id, d.label);
+    grid.appendChild(el);
+  });
+}
+
+function selectDept(id, label) {
+  state.dept = { id, label };
+  document.querySelectorAll('.dept-chip').forEach(c => c.classList.remove('active'));
+  document.getElementById('dept-' + id).classList.add('active');
+  document.getElementById('dept-error').style.display = 'none';
+}
+
+// ── Severity ───────────────────────────────────────────
+function setSeverity(sev) {
+  state.severity = sev;
+  ['low','med','high'].forEach(s => {
+    document.getElementById('sev-' + s).classList.remove('active');
+  });
+  const map = { Low: 'low', Medium: 'med', High: 'high' };
+  document.getElementById('sev-' + map[sev]).classList.add('active');
+}
+
+// ── Staff toggle (IP only) ─────────────────────────────
+function toggleStaffMode() {
+  state.staffMode = !state.staffMode;
+  const tog = document.getElementById('staff-toggle');
+  const sf  = document.getElementById('staff-name-field');
+  tog.classList.toggle('on', state.staffMode);
+  sf.style.display = state.staffMode ? 'block' : 'none';
+}
+
+// ── Photo ──────────────────────────────────────────────
+function handlePhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('preview-img');
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Char count ─────────────────────────────────────────
+function updateCharCount() {
+  const len = document.getElementById('complaint-text').value.length;
+  document.getElementById('char-count').textContent = Math.min(len, 300);
+  if (len > 300) document.getElementById('complaint-text').value =
+    document.getElementById('complaint-text').value.slice(0, 300);
+}
+
+// ── Validation ─────────────────────────────────────────
+function validateStep2() {
+  const name = document.getElementById('patient-name').value.trim();
+  if (!name) {
+    document.getElementById('patient-name').focus();
+    alert('Please enter the patient name.');
+    return false;
+  }
+  if (state.type === 'IP') {
+    const ward = document.getElementById('ward-select').value;
+    const bed  = document.getElementById('bed-no').value.trim();
+    if (!ward) { document.getElementById('ward-select').focus(); alert('Please select the ward.'); return false; }
+    if (!bed)  { document.getElementById('bed-no').focus(); alert('Please enter the bed number.'); return false; }
+  }
+  if (state.staffMode) {
+    const sn = document.getElementById('staff-name').value.trim();
+    if (!sn) { document.getElementById('staff-name').focus(); alert('Please enter the staff name.'); return false; }
+  }
+  return true;
+}
+
+// ── Submit ─────────────────────────────────────────────
+function submitComplaint() {
+  if (!state.dept) {
+    document.getElementById('dept-error').style.display = 'block';
+    document.getElementById('dept-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+  const text = document.getElementById('complaint-text').value.trim();
+  if (!text) {
+    document.getElementById('text-error').style.display = 'block';
+    document.getElementById('complaint-text').focus();
+    return;
+  }
+  if (!state.severity) {
+    alert('Please select a priority level.');
+    return;
+  }
+
+  // Generate ticket
+  const ticket = 'CMR-' + Date.now().toString().slice(-6);
+  document.getElementById('ticket-id').textContent = ticket;
+
+  // Build summary
+  const name = document.getElementById('patient-name').value.trim();
+  const mr   = document.getElementById('mr-number').value.trim() || '—';
+  const mob  = document.getElementById('mobile').value.trim() || '—';
+  let rows = [
+    { k: 'Type',       v: state.type === 'OP' ? 'Outpatient' : 'Inpatient' },
+    { k: 'Department', v: state.dept.label },
+    { k: 'Priority',   v: state.severity },
+    { k: 'Patient',    v: name },
+    { k: 'MR No.',     v: mr },
+    { k: 'Mobile',     v: mob },
+  ];
+  if (state.type === 'IP') {
+    const ward = document.getElementById('ward-select').value;
+    const bed  = document.getElementById('bed-no').value.trim();
+    rows.splice(2, 0, { k: 'Ward', v: ward }, { k: 'Bed', v: bed });
+  }
+
+  const detail = document.getElementById('success-detail');
+  detail.innerHTML = rows.map(r =>
+    `<div class="success-detail-row"><span class="k">${r.k}</span><span class="v">${r.v}</span></div>`
+  ).join('');
+
+  // Go to success
+  document.querySelectorAll('.step-page').forEach(p => { p.classList.remove('visible'); p.style.display = ''; });
+  document.getElementById('step-success').style.display = 'block';
+  document.getElementById('step-success').classList.add('visible');
+  updateProgress(4);
+  document.getElementById('mode-badge').textContent = '✓ Submitted';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Reset ──────────────────────────────────────────────
+function resetForm() {
+  state = { type: null, dept: null, severity: null, staffMode: false, step: 1 };
+  document.getElementById('patient-name').value = '';
+  document.getElementById('mr-number').value = '';
+  document.getElementById('mobile').value = '';
+  document.getElementById('complaint-text').value = '';
+  document.getElementById('char-count').textContent = '0';
+  document.getElementById('preview-img').style.display = 'none';
+  document.getElementById('photo-input').value = '';
+  document.getElementById('staff-toggle').classList.remove('on');
+  document.getElementById('staff-name-field').style.display = 'none';
+  ['sev-low','sev-med','sev-high'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('btn-op').classList.remove('active');
+  document.getElementById('btn-ip').classList.remove('active');
+  document.getElementById('btn-next-1').disabled = true;
+  document.getElementById('mode-badge').textContent = 'Select Type';
+  document.getElementById('ip-context-card').style.display = 'none';
+  document.getElementById('staff-toggle-wrap').style.display = 'none';
+  document.getElementById('step-success').style.display = 'none';
+  document.getElementById('step-success').classList.remove('visible');
+  document.getElementById('step-1').classList.add('visible');
+  updateProgress(1);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
